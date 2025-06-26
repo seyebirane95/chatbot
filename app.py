@@ -1,20 +1,19 @@
-
-import os
 from flask import Flask, request, jsonify
 from chatbot_intelligent_restaurant import NLPChatbot
 
 app = Flask(__name__)
-chatbot = NLPChatbot()
+bot = NLPChatbot()
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
-    return "Chatbot API is running!"
+    return "Chatbot Restaurant is running."
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_input = request.json.get("message", "")
-    return jsonify({"response": f"Vous avez dit : {user_input}"})
+    data = request.json
+    user_input = data.get("message", "")
+    response = bot.process_input(user_input)
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=10000)
