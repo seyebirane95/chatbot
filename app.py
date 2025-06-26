@@ -1,7 +1,7 @@
 
 import os
 from flask import Flask, request, jsonify
-from chatbot import NLPChatbot
+from chatbot_intelligent_restaurant import NLPChatbot
 
 app = Flask(__name__)
 chatbot = NLPChatbot()
