@@ -1,5 +1,6 @@
 import spacy
 from spacy.matcher import Matcher
+import dateparser
 
 nlp = spacy.load("en_core_web_sm")
 matcher = Matcher(nlp.vocab)
@@ -24,28 +25,30 @@ class NLPChatbot:
         if self.state == "GREETING":
             if intent == "BOOKING":
                 self.state = "ASKING_DATE"
-                return "Certainly! What date would you like to book?"
+                return "Certainement ! À quelle date souhaitez-vous réserver ?"
             elif intent == "MENU":
-                return "You can find our menu at www.restaurant.com/menu. Anything else?"
+                return "Vous pouvez consulter notre menu sur www.restaurant.com/menu. Autre chose ?"
             elif intent == "HOURS":
-                return "We're open from 11 AM to 10 PM every day. Would you like to make a reservation?"
+                return "Nous sommes ouverts de 11h à 22h tous les jours. Souhaitez-vous réserver ?"
             elif intent == "GREETING":
-                return "Hello! How can I assist you today?"
+                return "Bonjour ! Comment puis-je vous aider aujourd’hui ?"
             else:
-                return "I'm not sure I understood that. Could you please rephrase?"
+                return "Je ne suis pas sûr d’avoir compris. Pouvez-vous reformuler ?"
 
         elif self.state == "ASKING_DATE":
-            if "DATE" in entities:
-                self.booking_info["date"] = entities["DATE"]
+            parsed_date = dateparser.parse(user_input, languages=["fr"])
+            if parsed_date:
+                date_str = parsed_date.strftime("%d/%m/%Y")
+                self.booking_info["date"] = date_str
                 self.state = "ASKING_TIME"
-                return f"Great! You want to book for {entities['DATE']}. What time?"
+                return f"Super ! Vous souhaitez réserver pour le {date_str}. À quelle heure ?"
             else:
-                return "Could you tell me the date again?"
+                return "Je n’ai pas compris la date. Pouvez-vous la reformuler ?"
 
         elif self.state == "ASKING_TIME":
             self.booking_info["time"] = user_input
             self.state = "ASKING_PARTY"
-            return "Excellent! How many people are in your party?"
+            return "Excellent ! Combien de personnes y a-t-il dans votre groupe ?"
 
         elif self.state == "ASKING_PARTY":
             try:
@@ -53,19 +56,19 @@ class NLPChatbot:
                 self.booking_info["party_size"] = party_size
                 self.state = "CONFIRMING"
                 return (
-                    f"So, to confirm: {party_size} people on {self.booking_info['date']} "
-                    f"at {self.booking_info['time']}. Is that correct?"
+                    f"Donc, pour confirmer : {party_size} personnes le {self.booking_info['date']} "
+                    f"à {self.booking_info['time']}. C’est bien ça ?"
                 )
             except ValueError:
-                return "Sorry, I didn't understand the number. How many people are in your party?"
+                return "Désolé, je n’ai pas compris le nombre. Combien de personnes êtes-vous ?"
 
         elif self.state == "CONFIRMING":
-            if "yes" in user_input.lower():
+            if "oui" in user_input.lower():
                 self.state = "GREETING"
-                return "Perfect! Your reservation is confirmed. Looking forward to seeing you!"
+                return "Parfait ! Votre réservation est confirmée. À bientôt !"
             else:
                 self.state = "GREETING"
-                return "Okay, let's start over. How can I assist you?"
+                return "D’accord, reprenons depuis le début. Comment puis-je vous aider ?"
 
     def get_intent(self, matches):
         if not matches:
