@@ -33,7 +33,7 @@ class NLPChatbot:
                 return "Hello! How can I assist you today?"
             else:
                 return "I'm not sure I understood that. Could you please rephrase?"
-        
+
         elif self.state == "ASKING_DATE":
             if "DATE" in entities:
                 self.booking_info["date"] = entities["DATE"]
@@ -52,7 +52,10 @@ class NLPChatbot:
                 party_size = int(user_input)
                 self.booking_info["party_size"] = party_size
                 self.state = "CONFIRMING"
-                return f"So, to confirm: {party_size} people on {self.booking_info['date']} at {self.booking_info['time']}. Is that correct?"
+                return (
+                    f"So, to confirm: {party_size} people on {self.booking_info['date']} "
+                    f"at {self.booking_info['time']}. Is that correct?"
+                )
             except ValueError:
                 return "Sorry, I didn't understand the number. How many people are in your party?"
 
@@ -75,15 +78,3 @@ class NLPChatbot:
         for ent in doc.ents:
             entities[ent.label_] = ent.text
         return entities
-
-# Utilisation
-bot = NLPChatbot()
-print("Bot: Welcome to our restaurant! How can I assist you today?")
-
-while True:
-    user_input = input("You: ")
-    if user_input.lower() == "quit":
-        print("Bot: Thank you for using our service. Goodbye!")
-        break
-    response = bot.process_input(user_input)
-    print("Bot:", response)
